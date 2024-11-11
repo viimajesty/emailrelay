@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "compile",
+        "type": "shell",
+        "command": "g++ -std=c++11 -o server server.cpp",  // Replace this with your command
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [],
+        "detail": "compiling for c++"
+      }
+    ]
+  }
+  
