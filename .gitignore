@@ -5,3 +5,4 @@ variables.sh
 *.asc
 testnew.cpp
 .vscode/
+.DS_Store
