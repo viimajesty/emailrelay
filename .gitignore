@@ -1,0 +1,7 @@
+build/
+variables.sh
+*.pub
+*.priv
+*.asc
+testnew.cpp
+.vscode/

@@ -142,6 +142,13 @@
     "functional": "cpp",
     "iterator": "cpp",
     "utility": "cpp",
-    "regex": "cpp"
+    "regex": "cpp",
+    "forward_list": "cpp",
+    "__verbose_abort": "cpp",
+    "charconv": "cpp",
+    "execution": "cpp",
+    "print": "cpp",
+    "queue": "cpp",
+    "shared_mutex": "cpp"
   }
 }

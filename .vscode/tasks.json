@@ -1,17 +1,29 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "compile",
-        "type": "shell",
-        "command": "g++ -std=c++11 -o server server.cpp",  // Replace this with your command
-        "group": {
-          "kind": "build",
-          "isDefault": true
-        },
-        "problemMatcher": [],
-        "detail": "compiling for c++"
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compile",
+      "type": "shell",
+      //"command": "g++ -std=c++11 -o server server.cpp",  // Replace this with your command
+      //build current file
+      "command": "g++",
+      "args": [
+        "-std=c++11",
+        "-o",
+        "${workspaceFolder}/build/${fileBasenameNoExtension}",
+        "${file}",
+        "-lgpgme"
+      ],
+
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "detail": "compiling for c++",
+      "presentation": {
+        "close": true
       }
-    ]
-  }
-  
+    }
+  ]
+}
