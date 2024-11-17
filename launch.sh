@@ -21,6 +21,6 @@ elif [ -z "${1+x}" ]; then
 else
     echo "All variables are set."
 
-    curl -X POST http://localhost:5555/sendmail -d "email=$SENDTO" -d "message=$1" -d "subject=email relay" -d "password=$PASSWORD" -d "from=$FROM"
+    curl -X POST http://localhost:5555/sendmail -d "email=$SENDTO" -d "message=$1" -d "subject=emailRelay" -d "password=$PASSWORD" -d "from=$FROM"
 fi
 

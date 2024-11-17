@@ -15,8 +15,6 @@
 #include "dotenv.h"
 #include <pstream.h>
 
-using namespace std;
-
 std::string exec(std::string command)
 {
     std::string res;
@@ -42,11 +40,21 @@ std::string exec(std::string command)
     }
     return res;
 }
+void removeTrailingNewline(std::string &str)
+{
+    if (!str.empty() && str.back() == '\n')
+    {
+        str.erase(str.size() - 1);
+    }
+}
 
 void init_gpgme(void)
 {
     setlocale(LC_ALL, "en_US.UTF-8");
-    gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP, "/usr/local/bin/gpg", NULL);
+    auto gpgPath = exec("which gpg");
+    removeTrailingNewline(gpgPath);
+    std::cout << gpgPath << std::endl;
+    gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP, gpgPath.c_str(), NULL);
     gpgme_check_version(NULL);
     gpgme_set_locale(NULL, LC_CTYPE, setlocale(LC_CTYPE, NULL));
 #ifdef LC_MESSAGES
@@ -214,7 +222,7 @@ int importKeys()
     return 0;
 }
 
-string sendmail(std::string &email, std::string &messagetosend, std::string &messagesubject, std::string &encpassword, std::string &sendfrom)
+std::string sendmail(std::string &email, std::string &messagetosend, std::string &messagesubject, std::string &encpassword, std::string &sendfrom)
 {
     std::string failure = "";
     // cout << encpassword << endl;
@@ -243,7 +251,13 @@ string sendmail(std::string &email, std::string &messagetosend, std::string &mes
         failure = "Bad request. Please check all input parameters. ";
         return failure;
     }
-    const string command = "echo $'Subject: " + std::string(messagesubject) + "\\n\\n" + std::string(messagetosend) + "' | msmtp --from=" + std::string(sendfrom) + " --tls=on --tls-trust-file=/etc/ssl/cert.pem --auth=on --user=" + std::string(sendfrom) + " --passwordeval='echo " + std::string(password) + " ' --host=smtp.gmail.com --port=587 " + std::string(email);
+    const std::string command =
+        "printf 'Subject: " + std::string(messagesubject) + "\\n\\n" + std::string(messagetosend) + "' | msmtp --from=" +
+        std::string(sendfrom) +
+        " --tls=on --tls-trust-file=/etc/ssl/cert.pem --auth=on --user=" +
+        std::string(sendfrom) +
+        " --passwordeval='echo " + std::string(password) + "' --host=smtp.gmail.com --port=587 " +
+        std::string(email);
     redi::ipstream proc(command, redi::pstreams::pstdout | redi::pstreams::pstderr);
     std::string line;
     // read child's stdout
@@ -286,8 +300,11 @@ int main()
         auto sendfrom = req.get_param_value("from");
 
        // std::cout << email + " " + message_text + " " + subject + " " + password << std::endl;
-        string result = sendmail(email, message_text, subject, password, sendfrom);
+        std::string result = sendmail(email, message_text, subject, password, sendfrom);
         res.set_content("response from server: " + result, "text/plain"); });
 
-    svr.listen("0.0.0.0", 5555); // or your desired port
+    auto port = dotenv::getenv("PORT", "5555");
+    int port_int = std::stoi(port);
+    std::cout << "server is running on port " + port << std::endl;
+    svr.listen("0.0.0.0", port_int);
 }
