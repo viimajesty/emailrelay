@@ -6,3 +6,4 @@ variables.sh
 testnew.cpp
 .vscode/
 .DS_Store
+.env

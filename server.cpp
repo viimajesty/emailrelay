@@ -12,6 +12,7 @@
 #include <locale.h>
 #include <fstream>
 #include "Base64.h"
+#include "dotenv.h"
 #include <pstream.h>
 
 using namespace std;
@@ -61,7 +62,6 @@ bool is_file_readable(const char *filename)
 
 std::tuple<int, std::string> decrypt(const char *encrypted_file)
 {
-    std::cout << encrypted_file << std::endl;
     //     std::cout << encrypted_file << std::endl;
     // Ensure the buffer is not null and has data
     if (encrypted_file == nullptr || *encrypted_file == '\0')
@@ -140,7 +140,7 @@ std::tuple<int, std::string> decrypt(const char *encrypted_file)
         while ((bytes_read = gpgme_data_read(plain_data, buffer, sizeof(buffer))) > 0)
         {
             decrypted_text.append(buffer, bytes_read);
-            std::cout.write(buffer, bytes_read);
+            // std::cout.write(buffer, bytes_read);
         }
     }
 
@@ -156,7 +156,7 @@ int importKeys()
 {
     init_gpgme();
 
-    const char *private_key_file = "~/test.priv"; // Path to private key file
+    const char *private_key_file = std::getenv("PRIVATEKEYPATH"); // Path to private key file
     if (!is_file_readable(private_key_file))
     {
         std::cerr << "Error: File '" << private_key_file << "' is not readable!" << std::endl;
@@ -216,7 +216,7 @@ int importKeys()
 
 string sendmail(std::string &email, std::string &messagetosend, std::string &messagesubject, std::string &encpassword, std::string &sendfrom)
 {
-    std::string failure = "none";
+    std::string failure = "";
     // cout << encpassword << endl;
     std::string out;
     auto error = macaron::Base64::Decode(encpassword, out);
@@ -230,7 +230,7 @@ string sendmail(std::string &email, std::string &messagetosend, std::string &mes
     std::string password = "";
     if (std::get<0>(passwordtupl) == 0)
     {
-        std::cout << std::get<1>(passwordtupl) << std::endl;
+        // std::cout << std::get<1>(passwordtupl) << std::endl;
         password = std::get<1>(passwordtupl);
     }
     else
@@ -256,17 +256,25 @@ string sendmail(std::string &email, std::string &messagetosend, std::string &mes
     while (std::getline(proc.err(), line))
     {
         std::cout << "stderr: " << line << '\n';
-        failure += line;
+        failure.append(line);
     }
 
-    auto result = exec(command.c_str());
-    cout << result << endl;
+    if (failure == "")
+    {
+        failure = "message sent successfully.";
+    }
     return failure;
 }
 
 int main()
 {
-    importKeys();
+    dotenv::init();
+    int failure0 = importKeys();
+    if (failure0 != 0)
+    {
+        std::cout << "fatal: error importing keys." << std::endl;
+        return 1;
+    }
     httplib::Server svr;
 
     svr.Post("/sendmail", [](const httplib::Request &req, httplib::Response &res)
@@ -275,7 +283,7 @@ int main()
         auto message_text = req.get_param_value("message");
         auto subject = req.get_param_value("subject");
         auto password = req.get_param_value("password");
-        auto sendfrom = req.get_param_value("sendfrom");
+        auto sendfrom = req.get_param_value("from");
 
        // std::cout << email + " " + message_text + " " + subject + " " + password << std::endl;
         string result = sendmail(email, message_text, subject, password, sendfrom);
